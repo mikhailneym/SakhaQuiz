@@ -156,7 +156,7 @@
 <div class="container">
     <div class="quiz-card" id="quizApp">
         <div class="question-header">
-            <span>🧠 Викторина</span>
+            <span>🧠 Знаток Яктуии</span>
             <span id="questionCounter">Вопрос 1 / 10</span>
         </div>
         <div id="quizContent">
@@ -350,10 +350,10 @@
             const total = QUESTIONS.length;
             const percent = Math.round((this.score / total) * 100);
             let message = '';
-            if (percent === 100) message = '🎉 Идеально! Ты гений!';
-            else if (percent >= 70) message = '🌟 Отлично! Почти всё верно.';
-            else if (percent >= 50) message = '👍 Неплохо, но можно лучше.';
-            else message = '📚 Ил Дархан недоволен тобой, подтяни знания!';
+            if (percent === 100) message = '🎉 Благословенный знаток! Сам Үрүҥ Аар Тойон благоволит тебе!';
+            else if (percent >= 70) message = '🌟 Патриот Якутии! Ты любишь Родину и помнишь о ней! Уруй Айхал!';
+            else if (percent >= 50) message = '👍 Сознательный гражданин. Знаешь Якутию, но ты можешь лучше!';
+            else message = '📚 Несознательный гражданин. Ил Дархан недоволен тобой! Подтяни знания!';
 
             const resultHtml = `
                 <div class="result-area">
