@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Викторина</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 550px;
+            width: 100%;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 40px;
+            padding: 20px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .quiz-card {
+            background: white;
+            border-radius: 32px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .question-header {
+            background: #3b82f6;
+            padding: 15px 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .question-img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            background: #f1f5f9;
+            display: block;
+        }
+
+        .question-text {
+            padding: 20px 20px 10px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #0f172a;
+        }
+
+        .options-list {
+            padding: 10px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 60px;
+            padding: 14px 18px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            color: #1e293b;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: #eef2ff;
+            border-color: #3b82f6;
+            transform: scale(1.01);
+        }
+
+        .option-btn.correct {
+            background: #22c55e;
+            border-color: #15803d;
+            color: white;
+        }
+
+        .option-btn.wrong {
+            background: #ef4444;
+            border-color: #b91c1c;
+            color: white;
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+            opacity: 0.8;
+        }
+
+        .next-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            width: calc(100% - 40px);
+            margin: 0 20px 20px;
+            padding: 14px;
+            border-radius: 60px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .next-btn:hover {
+            background: #2563eb;
+        }
+
+        .result-area {
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .score {
+            font-size: 2.8rem;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+
+        .restart-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 1rem;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="quiz-card" id="quizApp">
+        <div class="question-header">
+            <span>🧠 Викторина</span>
+            <span id="questionCounter">Вопрос 1 / 10</span>
+        </div>
+        <div id="quizContent">
+            <!-- динамическое содержимое -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // -------------------- ВОПРОСЫ (10 шт) --------------------
+    // Каждый вопрос: картинка (замените ссылки на свои, если нужно), текст, варианты, правильный ответ (0-3)
+    const QUESTIONS = [
+        {
+            image: "https://upload.wikimedia.org/wikipedia/commons/7/75/Flag_of_Amginsky_rayon.png", // случайные картинки для примера
+            text: "Это флаг какого улуса?",
+            options: ["Верхневилюйский", "Среднеколымский", "Амгинский", "Сунтарский"],
+            correct: 2
+        },
+        {
+            image: "https://upload.wikimedia.org/wikipedia/commons/e/ec/Flag_of_Tattinsky_ulus_%28Yakutia%29.png",
+            text: "Это флаг какого улуса?",
+            options: ["Вилюйский", "Таттинский", "Горный", "Томпонский"],
+            correct: 1
+        },
+        {
+            image: "https://upload.wikimedia.org/wikipedia/commons/a/a0/Flag_of_Khangalassky_District.png",
+            text: "Это флаг какого улуса?",
+            options: ["Алданский", "Хангаласский", "Эвено-Бытантайский", "Чурапчинский"],
+            correct: 1
+        },
+        {
+            image: "https://upload.wikimedia.org/wikipedia/commons/a/a5/Flag_of_Megino-Kangalassky_rayon_%28Yakutia%29.png",
+            text: "Это флаг какого улуса?",
+            options: ["Мегино-Кангаласский", "Мирнинский", "Усть-АЛданский", "Жиганский"],
+            correct: 0
+        },
+        {
+            image: "https://upload.wikimedia.org/wikipedia/commons/3/3a/Flag_of_Lensky_District_%28Yakutia%29.png",
+            text: "Это флаг какого улуса?",
+            options: ["Ленский", "Алданский", "Нерюнгринский", "Намский"],
+            correct: 0
+        },
+        {
+            image: "https://upload.wikimedia.org/wikipedia/commons/6/63/Flag_of_Ust-Yansky_rayon.png",
+            text: "Это флаг какого улуса?",
+            options: ["Нижнеколымский", "Верхнеколымский", "Булунский", "Усть-Янский"],
+            correct: 3
+        },
+        {
+            image: "https://upload.wikimedia.org/wikipedia/commons/e/e8/Flag_of_Tomponsky_rayon.png",
+            text: "Это флаг какого улуса?",
+            options: ["Среднеколымский", "Томпонский", "Кобяйский", "Анабарский"],
+            correct: 1
+        },
+        {
+            image: "https://upload.wikimedia.org/wikipedia/commons/b/ba/Flag_of_Momsky_rayon_%28Yakutia%29.png",
+            text: "Это флаг какого улуса?",
+            options: ["Жиганский", "Олёкминский", "Момский", "Оймяконский"],
+            correct: 2
+        },
+        {
+            image: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Flag_of_Suntarsky_rayon_%28Yakutia%29.png",
+            text: "Это флаг какого улуса?",
+            options: ["Таттинский", "Нюрбинский", "Сунтарский", "Верхневилюйский"],
+            correct: 2
+        },
+        {
+            image: "https://upload.wikimedia.org/wikipedia/commons/3/3e/Flag_of_Neryungrinsky_rayon_%28Yakutia%29.png",
+            text: "Это флаг какого улуса?",
+            options: ["Сунтарский", "Таттинский", "Нерюнгринский", "Абыйский"],
+            correct: 2
+        }
+    ];
+
+    class QuizApp {
+        constructor(containerId) {
+            this.container = document.getElementById(containerId);
+            this.currentIndex = 0;
+            this.score = 0;
+            this.answerLocked = false;
+            this.userAnswers = new Array(10).fill(null); // хранит выбранный индекс или null
+            this.init();
+        }
+
+        init() {
+            this.render();
+        }
+
+        render() {
+            if (this.currentIndex < QUESTIONS.length) {
+                this.renderQuestion();
+            } else {
+                this.renderResult();
+            }
+        }
+
+        renderQuestion() {
+            const q = QUESTIONS[this.currentIndex];
+            const savedAnswer = this.userAnswers[this.currentIndex];
+            const isAnswered = savedAnswer !== null;
+
+            let html = `
+                <img class="question-img" src="${q.image}" alt="Вопрос картинка" onerror="this.src='https://picsum.photos/id/1/400/250'">
+                <div class="question-text">${this.currentIndex + 1}. ${q.text}</div>
+                <div class="options-list" id="optionsList">
+            `;
+
+            q.options.forEach((opt, idx) => {
+                let additionalClass = '';
+                let disabledAttr = isAnswered ? 'disabled' : '';
+
+                // Если уже дан ответ на этот вопрос — подсветим правильный и выбранный пользователем
+                if (isAnswered) {
+                    if (idx === q.correct) {
+                        additionalClass = 'correct';
+                    } else if (idx === savedAnswer && savedAnswer !== q.correct) {
+                        additionalClass = 'wrong';
+                    }
+                }
+
+                html += `
+                    <button class="option-btn ${additionalClass}" data-opt-index="${idx}" ${disabledAttr}>
+                        ${String.fromCharCode(65+idx)}. ${opt}
+                    </button>
+                `;
+            });
+
+            html += `</div>`;
+            if (!isAnswered) {
+                html += `<button class="next-btn" id="nextBtn" style="background:#94a3b8;" disabled>Далее ➡</button>`;
+            } else {
+                html += `<button class="next-btn" id="nextBtn">Далее ➡</button>`;
+            }
+
+            document.getElementById('quizContent').innerHTML = html;
+            document.getElementById('questionCounter').innerText = `Вопрос ${this.currentIndex + 1} / ${QUESTIONS.length}`;
+
+            if (!isAnswered) {
+                const optionBtns = document.querySelectorAll('.option-btn');
+                optionBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        if (this.answerLocked) return;
+                        const selectedIdx = parseInt(btn.dataset.optIndex);
+                        this.handleAnswer(selectedIdx);
+                    });
+                });
+            }
+
+            const nextBtn = document.getElementById('nextBtn');
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => this.nextQuestion());
+            }
+        }
+
+        handleAnswer(selectedIdx) {
+            if (this.answerLocked) return;
+            const currentQ = QUESTIONS[this.currentIndex];
+            const isCorrect = (selectedIdx === currentQ.correct);
+
+            if (isCorrect) {
+                this.score++;
+            }
+
+            // сохраняем ответ пользователя
+            this.userAnswers[this.currentIndex] = selectedIdx;
+            this.answerLocked = true;
+
+            // перерисовываем текущий вопрос с подсветкой
+            this.renderQuestion();
+
+            // скроллим плавно вверх
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        nextQuestion() {
+            // если ответ не выбран - кнопка disabled, но дополнительная проверка
+            if (this.userAnswers[this.currentIndex] === null) return;
+
+            if (this.currentIndex + 1 < QUESTIONS.length) {
+                this.currentIndex++;
+                this.answerLocked = false;
+                this.render();
+            } else {
+                // викторина закончена
+                this.currentIndex++; // станет = длине
+                this.render();
+            }
+        }
+
+        renderResult() {
+            const total = QUESTIONS.length;
+            const percent = Math.round((this.score / total) * 100);
+            let message = '';
+            if (percent === 100) message = '🎉 Идеально! Ты гений!';
+            else if (percent >= 70) message = '🌟 Отлично! Почти всё верно.';
+            else if (percent >= 50) message = '👍 Неплохо, но можно лучше.';
+            else message = '📚 Ил Дархан недоволен тобой, подтяни знания!';
+
+            const resultHtml = `
+                <div class="result-area">
+                    <div class="score">${this.score} / ${total}</div>
+                    <div style="font-size:1.2rem; margin: 15px 0;">${percent}% правильных</div>
+                    <div style="margin-bottom: 20px;">${message}</div>
+                    <button class="restart-btn" id="restartQuiz">🔄 Пройти заново</button>
+                </div>
+            `;
+            document.getElementById('quizContent').innerHTML = resultHtml;
+            document.getElementById('questionCounter').innerText = `Результат`;
+            document.getElementById('restartQuiz').addEventListener('click', () => this.restart());
+        }
+
+        restart() {
+            this.currentIndex = 0;
+            this.score = 0;
+            this.answerLocked = false;
+            this.userAnswers = new Array(10).fill(null);
+            this.render();
+        }
+    }
+
+    // Запуск приложения после загрузки
+    window.addEventListener('DOMContentLoaded', () => {
+        new QuizApp('quizContent');
+    });
+</script>
+</body>
+</html>
